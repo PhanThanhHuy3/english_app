@@ -4,8 +4,8 @@ pipeline {
     environment {
         // Tên của Docker image
         IMAGE_NAME = 'english-app-react'
-        // Cổng trên máy host để map vào container
-        HOST_PORT = '8080'
+        // Cổng trên máy host để map vào container (tránh 8080 vì Jenkins đang dùng)
+        HOST_PORT = '8000'
     }
 
     stages {
