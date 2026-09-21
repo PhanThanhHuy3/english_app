@@ -21,7 +21,7 @@ pipeline {
             steps {
                 echo 'Building Docker Image...'
                 // Build docker image từ Dockerfile
-                bat "docker build -t ${IMAGE_NAME} ."
+                sh "docker build -t ${IMAGE_NAME} ."
             }
         }
 
@@ -30,12 +30,12 @@ pipeline {
                 echo 'Deploying application...'
                 // Dừng và xóa container cũ nếu đang chạy để tránh lỗi trùng port/tên
                 catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                    bat "docker stop ${IMAGE_NAME}-container"
-                    bat "docker rm ${IMAGE_NAME}-container"
+                    sh "docker stop ${IMAGE_NAME}-container"
+                    sh "docker rm ${IMAGE_NAME}-container"
                 }
                 
                 // Chạy container mới
-                bat "docker run -d -p ${HOST_PORT}:80 --name ${IMAGE_NAME}-container ${IMAGE_NAME}"
+                sh "docker run -d -p ${HOST_PORT}:80 --name ${IMAGE_NAME}-container ${IMAGE_NAME}"
             }
         }
     }
