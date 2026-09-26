@@ -24,7 +24,7 @@ export const LearnerLogin = () => {
     <div className="min-h-screen bg-indigo-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl text-center text-indigo-900">Learner Login</CardTitle>
+          <CardTitle className="text-2xl text-center text-indigo-900">Welcome to My English App</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
