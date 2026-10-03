@@ -20,11 +20,20 @@ pipeline {
         stage('Deploy (Docker Compose)') {
             steps {
                 echo 'Deploying Fullstack Application...'
+                
+                // Cài đặt docker-compose nếu chưa có (Jenkins đang chạy quyền root)
+                sh '''
+                if ! command -v docker-compose &> /dev/null; then
+                    curl -SL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+                    chmod +x /usr/local/bin/docker-compose
+                fi
+                '''
+
                 // Dừng các container cũ
-                sh "docker compose down || true"
+                sh "docker-compose down || true"
                 
                 // Build và chạy tất cả các services (mongodb, backend, frontend)
-                sh "docker compose up -d --build"
+                sh "docker-compose up -d --build"
             }
         }
     }
