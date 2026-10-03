@@ -1,15 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Role } from '../types';
-import { mockUsers } from '../mockData';
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string, role: Role) => void;
+  login: (email: string, password: string, role: Role) => Promise<void>;
   logout: () => void;
-  register: (user: Omit<User, 'id'>) => void;
+  register: (user: Omit<User, 'id'>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Define API URL. In production, this can point to the real backend URL.
+const API_URL = 'http://localhost:5000/api';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
@@ -17,47 +19,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  const [usersDb, setUsersDb] = useState<User[]>(() => {
-    const saved = localStorage.getItem('usersDb');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // If legacy data without passwords, fallback to mockUsers
-      if (parsed.length > 0 && parsed[0].password === undefined) {
-        return mockUsers;
+  const login = async (email: string, password: string, role: Role) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        alert(data.message || 'Login failed');
+        return;
       }
-      return parsed;
-    }
-    return mockUsers;
-  });
 
-  useEffect(() => {
-    localStorage.setItem('usersDb', JSON.stringify(usersDb));
-  }, [usersDb]);
+      // Check if role matches what they requested (e.g. learner vs manager)
+      if (data.user.role !== role) {
+        alert(`You are not registered as a ${role}`);
+        return;
+      }
 
-  const login = (email: string, password: string, role: Role) => {
-    const foundUser = usersDb.find(u => u.email === email && u.password === password && u.role === role && u.isActive);
-    if (foundUser) {
-      setUser(foundUser);
-      localStorage.setItem('authUser', JSON.stringify(foundUser));
-    } else {
-      alert('Invalid credentials or inactive account.');
+      // Save user & token
+      const authUser: User = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role as Role,
+        password: '', // Don't store password in context
+        isActive: true
+      };
+
+      setUser(authUser);
+      localStorage.setItem('authUser', JSON.stringify(authUser));
+      localStorage.setItem('token', data.token);
+      
+    } catch (error) {
+      console.error(error);
+      alert('Error connecting to the server');
     }
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('authUser');
+    localStorage.removeItem('token');
   };
 
-  const register = (newUser: Omit<User, 'id'>) => {
-    const exists = usersDb.find(u => u.email === newUser.email);
-    if (exists) {
-      alert('Email already in use.');
-      return;
+  const register = async (newUser: Omit<User, 'id'>) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUser)
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        alert(data.message || 'Registration failed');
+        return;
+      }
+
+      alert('Registration successful! Please login.');
+    } catch (error) {
+      console.error(error);
+      alert('Error connecting to the server');
     }
-    const userWithId = { ...newUser, id: Date.now().toString() };
-    setUsersDb([...usersDb, userWithId]);
-    alert('Registration successful! Please login.');
   };
 
   return (
