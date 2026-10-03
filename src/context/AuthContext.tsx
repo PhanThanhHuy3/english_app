@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Save user & token
       const authUser: User = {
         id: data.user.id,
-        name: data.user.name,
+        fullName: data.user.name,
         email: data.user.email,
         role: data.user.role as Role,
         password: '', // Don't store password in context
@@ -68,10 +68,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (newUser: Omit<User, 'id'>) => {
     try {
+      // Map fullName from frontend to name for backend
+      const payload = {
+        name: newUser.fullName,
+        email: newUser.email,
+        password: newUser.password,
+        role: newUser.role
+      };
+
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newUser)
+        body: JSON.stringify(payload)
       });
       
       const data = await response.json();
