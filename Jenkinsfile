@@ -17,32 +17,21 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Deploy (Docker Compose)') {
             steps {
-                echo 'Building Docker Image...'
-                // Build docker image từ Dockerfile
-                sh "docker build -t ${IMAGE_NAME} ."
-            }
-        }
-
-        stage('Deploy (Run Container)') {
-            steps {
-                echo 'Deploying application...'
-                // Dừng và xóa container cũ nếu đang chạy để tránh lỗi trùng port/tên
-                catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                    sh "docker stop ${IMAGE_NAME}-container"
-                    sh "docker rm ${IMAGE_NAME}-container"
-                }
+                echo 'Deploying Fullstack Application...'
+                // Dừng các container cũ
+                sh "docker compose down || true"
                 
-                // Chạy container mới
-                sh "docker run -d -p ${HOST_PORT}:80 --name ${IMAGE_NAME}-container ${IMAGE_NAME}"
+                // Build và chạy tất cả các services (mongodb, backend, frontend)
+                sh "docker compose up -d --build"
             }
         }
     }
 
     post {
         success {
-            echo "Deploy thành công! Truy cập ứng dụng tại http://localhost:${HOST_PORT}"
+            echo "Deploy thành công! Frontend: http://localhost:8000 | Backend API: http://localhost:5000"
         }
         failure {
             echo "Deploy thất bại. Vui lòng kiểm tra log."
