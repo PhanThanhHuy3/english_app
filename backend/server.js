@@ -12,7 +12,10 @@ app.use(express.json());
 
 // Routes
 const authRoutes = require('./routes/auth');
+const flashcardRoutes = require('./routes/flashcards');
+
 app.use('/api/auth', authRoutes);
+app.use('/api/flashcards', flashcardRoutes);
 
 // Basic Route for testing
 app.get('/api/health', (req, res) => {

@@ -1,42 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Plus, BookOpen, Layers, Edit2, Trash2, CheckCircle2 } from 'lucide-react';
 
+const API_URL = 'http://localhost:5000/api';
+
 export const ContentManager = () => {
   const [activeTab, setActiveTab] = useState<'vocabulary' | 'grammar'>('vocabulary');
   
-  // Local state for demonstration purposes
-  const [vocabList, setVocabList] = useState([
-    { id: 1, term: 'Ubiquitous', definition: 'Present, appearing, or found everywhere.', example: 'His ubiquitous influence was felt by all the family.' },
-    { id: 2, term: 'Ephemeral', definition: 'Lasting for a very short time.', example: 'Fashions are ephemeral.' },
-  ]);
-
+  const [vocabList, setVocabList] = useState<any[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [newTerm, setNewTerm] = useState('');
   const [newDef, setNewDef] = useState('');
   const [newExample, setNewExample] = useState('');
 
-  const handleAddVocab = (e: React.FormEvent) => {
+  // Lấy dữ liệu từ Backend khi mở trang
+  useEffect(() => {
+    fetchFlashcards();
+  }, []);
+
+  const fetchFlashcards = async () => {
+    try {
+      const res = await fetch(`${API_URL}/flashcards`);
+      const data = await res.json();
+      setVocabList(data);
+    } catch (err) {
+      console.error('Lỗi khi tải flashcards:', err);
+    }
+  };
+
+  const handleAddVocab = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTerm || !newDef) return;
     
-    setVocabList([...vocabList, { 
-      id: Date.now(), 
-      term: newTerm, 
-      definition: newDef, 
-      example: newExample 
-    }]);
-    
-    setNewTerm('');
-    setNewDef('');
-    setNewExample('');
-    setIsAdding(false);
+    try {
+      const res = await fetch(`${API_URL}/flashcards`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ term: newTerm, definition: newDef, example: newExample })
+      });
+      const newCard = await res.json();
+      setVocabList([newCard, ...vocabList]); // Add to top of list
+      
+      setNewTerm('');
+      setNewDef('');
+      setNewExample('');
+      setIsAdding(false);
+    } catch (err) {
+      console.error('Lỗi khi thêm flashcard:', err);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    setVocabList(vocabList.filter(v => v.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await fetch(`${API_URL}/flashcards/${id}`, { method: 'DELETE' });
+      setVocabList(vocabList.filter(v => v._id !== id));
+    } catch (err) {
+      console.error('Lỗi khi xóa flashcard:', err);
+    }
   };
 
   return (
@@ -137,7 +159,7 @@ export const ContentManager = () => {
           {activeTab === 'vocabulary' ? (
             <div className="divide-y divide-slate-100">
               {vocabList.map((item) => (
-                <div key={item.id} className="p-6 hover:bg-slate-50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div key={item._id} className="p-6 hover:bg-slate-50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="space-y-1 flex-1">
                     <div className="flex items-center space-x-3">
                       <h4 className="text-xl font-bold text-indigo-900">{item.term}</h4>
@@ -150,7 +172,7 @@ export const ContentManager = () => {
                     <Button variant="outline" className="text-slate-600 border-slate-200 hover:bg-slate-100">
                       <Edit2 size={16} />
                     </Button>
-                    <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleDelete(item.id)}>
+                    <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleDelete(item._id)}>
                       <Trash2 size={16} />
                     </Button>
                   </div>

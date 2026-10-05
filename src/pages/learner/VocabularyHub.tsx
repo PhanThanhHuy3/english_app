@@ -1,13 +1,38 @@
-import React, { useState } from 'react';
-import { mockFlashcards } from '../../mockData';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../components/ui/Button';
 import { Volume2, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
+const API_URL = 'http://localhost:5000/api';
+
 export const VocabularyHub = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [cards, setCards] = useState(mockFlashcards);
+  const [cards, setCards] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFlashcards = async () => {
+      try {
+        const res = await fetch(`${API_URL}/flashcards`);
+        const data = await res.json();
+        setCards(data);
+      } catch (err) {
+        console.error('Error fetching flashcards:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFlashcards();
+  }, []);
+
+  if (loading) {
+    return <div className="text-center py-20 text-indigo-600 text-xl font-bold">Loading your flashcards...</div>;
+  }
+
+  if (cards.length === 0) {
+    return <div className="text-center py-20 text-gray-500">Your teacher hasn't added any vocabulary cards yet!</div>;
+  }
 
   const currentCard = cards[currentIndex];
 
