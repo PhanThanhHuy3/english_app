@@ -19,6 +19,7 @@ export const LearnerLayout = () => {
     { name: 'Vocabulary', path: '/learner/vocabulary', icon: BookA },
     { name: 'Grammar', path: '/learner/grammar', icon: Pencil },
     { name: 'Speaking', path: '/learner/speaking', icon: Mic },
+    { name: 'Leaderboard', path: '/learner/leaderboard', icon: Trophy },
     { name: 'Progress', path: '/learner/progress', icon: Trophy },
   ];
 

@@ -24,6 +24,7 @@ import { VocabularyHub } from './pages/learner/VocabularyHub';
 import { GrammarPractice } from './pages/learner/GrammarPractice';
 import { SpeakingLab } from './pages/learner/SpeakingLab';
 import { ProgressTracker } from './pages/learner/ProgressTracker';
+import { Leaderboard } from './pages/learner/Leaderboard';
 
 function App() {
   return (
@@ -54,6 +55,7 @@ function App() {
               <Route path="/learner/vocabulary" element={<VocabularyHub />} />
               <Route path="/learner/grammar" element={<GrammarPractice />} />
               <Route path="/learner/speaking" element={<SpeakingLab />} />
+              <Route path="/learner/leaderboard" element={<Leaderboard />} />
               <Route path="/learner/progress" element={<ProgressTracker />} />
               <Route path="/learner" element={<Navigate to="/learner/dashboard" replace />} />
             </Route>
