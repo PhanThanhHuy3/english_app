@@ -21,12 +21,11 @@ pipeline {
             steps {
                 echo 'Deploying Fullstack Application...'
                 
-                // Cài đặt docker-compose nếu chưa có (Jenkins đang chạy quyền root)
+                // Cài đặt lại docker-compose bản 2.27.0 (ổn định) để tránh lỗi SIGSEGV
                 sh '''
-                if ! command -v docker-compose &> /dev/null; then
-                    curl -SL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
-                    chmod +x /usr/local/bin/docker-compose
-                fi
+                rm -f /usr/local/bin/docker-compose
+                curl -SL https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+                chmod +x /usr/local/bin/docker-compose
                 '''
 
                 // Dừng các container cũ
