@@ -8,6 +8,7 @@ import { ManagerLayout } from './components/layout/ManagerLayout';
 import { LearnerLayout } from './components/layout/LearnerLayout';
 
 // Auth Pages
+import { LandingPage } from './pages/LandingPage';
 import { LearnerLogin } from './pages/auth/LearnerLogin';
 import { LearnerRegister } from './pages/auth/LearnerRegister';
 import { ManagerLogin } from './pages/auth/ManagerLogin';
@@ -29,7 +30,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<Navigate to="/learner/login" replace />} />
+          <Route path="/" element={<LandingPage />} />
 
           {/* Auth Routes */}
           <Route path="/learner/login" element={<LearnerLogin />} />
