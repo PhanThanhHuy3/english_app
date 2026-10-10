@@ -41,7 +41,7 @@ export const ContentManager = () => {
         body: JSON.stringify({ term: newTerm, definition: newDef, example: newExample })
       });
       const newCard = await res.json();
-      setVocabList([newCard, ...vocabList]); // Add to top of list
+      setVocabList(prev => [newCard, ...prev]); // Add to top of list
       
       setNewTerm('');
       setNewDef('');

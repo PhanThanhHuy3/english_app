@@ -16,14 +16,27 @@ export const VocabularyHub = () => {
       try {
         const res = await fetch(`${API_URL}/flashcards`);
         const data = await res.json();
-        setCards(data);
+        
+        // Cập nhật state nếu dữ liệu có thay đổi (so sánh độ dài hoặc ID) để tránh re-render không cần thiết
+        setCards(prev => {
+          if (prev.length !== data.length) return data;
+          if (prev.length > 0 && data.length > 0 && prev[0]._id !== data[0]._id) return data;
+          return prev;
+        });
       } catch (err) {
         console.error('Error fetching flashcards:', err);
       } finally {
         setLoading(false);
       }
     };
+    
+    // Fetch lần đầu
     fetchFlashcards();
+    
+    // Polling mỗi 3 giây để làm Real-time tự động cập nhật
+    const intervalId = setInterval(fetchFlashcards, 3000);
+    
+    return () => clearInterval(intervalId);
   }, []);
 
   if (loading) {
