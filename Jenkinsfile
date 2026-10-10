@@ -29,10 +29,10 @@ pipeline {
                 '''
 
                 // Dừng các container cũ
-                sh "docker-compose down || true"
+                sh "docker-compose -p english_app down || true"
                 
                 // Build và chạy tất cả các services (mongodb, backend, frontend)
-                sh "docker-compose up -d --build"
+                sh "docker-compose -p english_app up -d --build"
             }
         }
     }
