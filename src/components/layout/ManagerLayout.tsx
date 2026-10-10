@@ -21,9 +21,9 @@ export const ManagerLayout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-red-100 flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col">
+      <aside className="w-64 bg-red-900 text-white flex flex-col">
         <div className="p-6">
           <h2 className="text-2xl font-bold text-slate-100">Manager Portal</h2>
           <p className="text-slate-400 text-sm mt-1">{user?.fullName}</p>
@@ -38,7 +38,7 @@ export const ManagerLayout = () => {
                 to={item.path}
                 className={cn(
                   "flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors",
-                  isActive ? "bg-slate-800 text-white" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                  isActive ? "bg-red-800 text-white" : "text-slate-400 hover:bg-red-800 hover:text-white"
                 )}
               >
                 <Icon size={20} />
