@@ -12,15 +12,51 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Thêm Flashcard mới
+// Thêm Flashcard đơn lẻ
 router.post('/', async (req, res) => {
   try {
     const { term, definition, example } = req.body;
+    if (!term || !definition) {
+      return res.status(400).json({ message: 'Term and definition are required' });
+    }
     const newCard = new Flashcard({ term, definition, example });
     await newCard.save();
     res.status(201).json(newCard);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Import hàng loạt Flashcards (Batch Import từ CSV)
+router.post('/batch', async (req, res) => {
+  try {
+    const { items } = req.body;
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: 'Danh sách thẻ từ vựng không hợp lệ' });
+    }
+
+    // Lọc các item hợp lệ (phải có term và definition)
+    const validItems = items
+      .filter(item => item.term && item.definition)
+      .map(item => ({
+        term: item.term.trim(),
+        definition: item.definition.trim(),
+        example: item.example ? item.example.trim() : ''
+      }));
+
+    if (validItems.length === 0) {
+      return res.status(400).json({ message: 'Không có từ vựng nào hợp lệ' });
+    }
+
+    const inserted = await Flashcard.insertMany(validItems);
+    res.status(201).json({
+      message: `Đã import thành công ${inserted.length} từ vựng!`,
+      count: inserted.length,
+      data: inserted
+    });
+  } catch (err) {
+    console.error('Lỗi khi import batch flashcards:', err);
+    res.status(500).json({ message: 'Lỗi server khi import dữ liệu' });
   }
 });
 

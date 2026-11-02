@@ -13,9 +13,13 @@ app.use(express.json());
 // Routes
 const authRoutes = require('./routes/auth');
 const flashcardRoutes = require('./routes/flashcards');
+const userRoutes = require('./routes/users');
+const statsRoutes = require('./routes/stats');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/flashcards', flashcardRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/stats', statsRoutes);
 
 // Basic Route for testing
 app.get('/api/health', (req, res) => {
