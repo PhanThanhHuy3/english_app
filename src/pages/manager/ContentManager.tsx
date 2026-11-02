@@ -28,6 +28,13 @@ export const ContentManager = () => {
   const [newDef, setNewDef] = useState('');
   const [newExample, setNewExample] = useState('');
 
+  // Edit card state & modal
+  const [editingCard, setEditingCard] = useState<any | null>(null);
+  const [editTerm, setEditTerm] = useState('');
+  const [editDef, setEditDef] = useState('');
+  const [editExample, setEditExample] = useState('');
+  const [editLoading, setEditLoading] = useState(false);
+
   // CSV Import state
   const [csvText, setCsvText] = useState('');
   const [parsedPreview, setParsedPreview] = useState<ParsedCard[]>([]);
@@ -72,6 +79,41 @@ export const ContentManager = () => {
     }
   };
 
+  const openEditModal = (card: any) => {
+    setEditingCard(card);
+    setEditTerm(card.term || '');
+    setEditDef(card.definition || '');
+    setEditExample(card.example || '');
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCard || !editTerm || !editDef) return;
+
+    setEditLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/flashcards/${editingCard._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          term: editTerm,
+          definition: editDef,
+          example: editExample
+        })
+      });
+
+      if (res.ok) {
+        const updated = await res.json();
+        setVocabList(prev => prev.map(c => c._id === updated._id ? updated : c));
+        setEditingCard(null);
+      }
+    } catch (err) {
+      console.error('Lỗi cập nhật flashcard:', err);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!window.confirm('Bạn có chắc chắn muốn xóa từ vựng này không?')) return;
     try {
@@ -89,12 +131,10 @@ export const ContentManager = () => {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      // Nếu là dòng tiêu đề mẫu (Term, Definition, Example) thì bỏ qua
       if (i === 0 && (line.toLowerCase().includes('term') || line.toLowerCase().includes('từ vựng'))) {
         continue;
       }
 
-      // Xử lý dấu phẩy có bọc nháy kép hoặc dấu phẩy thường
       const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(p => p.trim().replace(/^"|"$/g, ''));
       if (parts.length >= 2 && parts[0] && parts[1]) {
         cards.push({
@@ -203,7 +243,7 @@ export const ContentManager = () => {
           <Button 
             onClick={handleExportCSV}
             variant="outline"
-            className="flex items-center space-x-2 border-slate-300 hover:bg-slate-100 text-slate-700 rounded-xl px-4 py-2.5"
+            className="flex items-center space-x-2 border-slate-300 hover:bg-slate-100 text-slate-700 rounded-xl px-4 py-2.5 bg-white"
             title="Xuất toàn bộ từ vựng ra file CSV"
           >
             <Download size={18} />
@@ -307,6 +347,80 @@ export const ContentManager = () => {
             </form>
           </CardContent>
         </Card>
+      )}
+
+      {/* Edit Flashcard Modal */}
+      {editingCard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 animate-fadeIn">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 rounded-xl bg-indigo-100 text-indigo-600">
+                  <Edit2 size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Chỉnh sửa từ vựng</h3>
+                  <p className="text-xs text-slate-500">Cập nhật thuật ngữ, nghĩa tiếng Việt hoặc câu ví dụ</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setEditingCard(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
+              <Input
+                label="English Term *"
+                type="text"
+                value={editTerm}
+                onChange={(e) => setEditTerm(e.target.value)}
+                required
+              />
+
+              <Input
+                label="Definition / Translation (Tiếng Việt) *"
+                type="text"
+                value={editDef}
+                onChange={(e) => setEditDef(e.target.value)}
+                required
+              />
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Example Sentence
+                </label>
+                <textarea
+                  rows={3}
+                  value={editExample}
+                  onChange={(e) => setEditExample(e.target.value)}
+                  className="w-full p-3 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                  placeholder="e.g. There is no empirical evidence to support this claim."
+                />
+              </div>
+
+              <div className="pt-3 flex justify-end space-x-3">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setEditingCard(null)}
+                  disabled={editLoading}
+                >
+                  Hủy
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={editLoading}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
+                >
+                  {editLoading ? 'Đang lưu...' : 'Lưu thay đổi'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* Modal Import CSV */}
@@ -476,7 +590,20 @@ export const ContentManager = () => {
                     {item.example && <p className="text-slate-500 italic text-sm">"{item.example}"</p>}
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleDelete(item._id)}>
+                    <Button 
+                      variant="outline" 
+                      className="text-slate-600 border-slate-200 hover:bg-slate-100" 
+                      onClick={() => openEditModal(item)}
+                      title="Chỉnh sửa từ vựng"
+                    >
+                      <Edit2 size={16} />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="text-red-600 border-red-200 hover:bg-red-50" 
+                      onClick={() => handleDelete(item._id)}
+                      title="Xóa từ vựng"
+                    >
                       <Trash2 size={16} />
                     </Button>
                   </div>

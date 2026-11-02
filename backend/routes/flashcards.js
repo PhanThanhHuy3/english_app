@@ -27,6 +27,24 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Cập nhật Flashcard (Sửa nội dung, chính tả, ví dụ)
+router.put('/:id', async (req, res) => {
+  try {
+    const { term, definition, example } = req.body;
+    const updated = await Flashcard.findByIdAndUpdate(
+      req.params.id,
+      { term, definition, example },
+      { new: true }
+    );
+    if (!updated) {
+      return res.status(404).json({ message: 'Không tìm thấy thẻ từ vựng' });
+    }
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi server khi cập nhật thẻ từ vựng' });
+  }
+});
+
 // Import hàng loạt Flashcards (Batch Import từ CSV)
 router.post('/batch', async (req, res) => {
   try {
